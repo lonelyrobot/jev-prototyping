@@ -1,0 +1,10 @@
+# Secrets
+.env
+.env.*
+
+# .NET build output
+bin/
+obj/
+
+# macOS
+.DS_Store
