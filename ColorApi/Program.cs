@@ -15,7 +15,10 @@ if (string.IsNullOrWhiteSpace(apiKey))
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 20 * 1024 * 1024);
 builder.Services.AddSingleton(_ => new TypeSafeClient(apiKey));
-builder.Services.AddSingleton<IColorClassifier, JevClassifier>();
+if (builder.Environment.IsEnvironment("E2E"))
+    builder.Services.AddSingleton<IColorClassifier, StubClassifier>(); // for the Playwright tests
+else
+    builder.Services.AddSingleton<IColorClassifier, JevClassifier>();
 
 var app = builder.Build();
 

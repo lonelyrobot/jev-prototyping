@@ -3,12 +3,14 @@
 A prototype API that sends an image to TypeSafe's Jev model and asks which of the
 8 classic crayon colors (red, orange, yellow, green, blue, violet, brown, black)
 it's closest to. Returns the pick plus the probability for each color as JSON.
+`web/` is a small React UI where you can drop in an image and see the results.
 
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - A TypeSafe API key
 - `curl` and `jq`, for `test-images.sh`
+- [Node.js](https://nodejs.org/), for the web UI
 
 ## Setup
 
@@ -24,6 +26,24 @@ Then, from `ColorApi/` in another terminal, use the port shown in the `dotnet ru
 
 ```bash
 curl -F "image=@test-files/red.jpg" http://localhost:5000/color
+```
+
+## Web UI
+
+With the API running, from the repo root in another terminal:
+
+```bash
+npm --prefix web install
+npm --prefix web run dev
+```
+
+Open the URL it prints. Each image you drop makes one TypeSafe API call. Vite proxies `/color` to
+`http://localhost:5000`. That port can also be in use by macOS's AirPlay Receiver, so if the UI
+can't reach the API, use another one:
+
+```bash
+dotnet run --project ColorApi --urls http://localhost:5098
+COLOR_API_URL=http://localhost:5098 npm --prefix web run dev
 ```
 
 ## API
@@ -57,6 +77,20 @@ dotnet test ColorApi.Tests
 ```
 
 Runs the unit tests, which need no API key and make no API calls.
+
+```bash
+npm --prefix web test
+```
+
+Runs the UI's component tests, with `fetch` mocked.
+
+```bash
+(cd web && npx playwright install chromium)   # first run only
+npm --prefix web run test:e2e
+```
+
+Runs the real UI against the real API with only the Jev call stubbed, so it needs no API key and
+spends no credits.
 
 ```bash
 ColorApi/test-images.sh
