@@ -3,20 +3,20 @@ using TypeSafeAI;
 using JsonContent = TypeSafeAI.JsonContent; // the Web SDK also imports System.Net.Http.Json.JsonContent
 
 public record ColorProbability(string Color, double Probability);
-public record CrayonResult(string Closest, double Confidence, IReadOnlyList<ColorProbability> Probabilities);
+public record ColorResult(string Closest, double Confidence, IReadOnlyList<ColorProbability> Probabilities);
 
 public class ClassifierException(Exception inner) : Exception("Classifier call failed.", inner);
 
-public interface ICrayonClassifier
+public interface IColorClassifier
 {
-    Task<CrayonResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken);
+    Task<ColorResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken);
 }
 
-public class JevClassifier(TypeSafeClient client) : ICrayonClassifier
+public class JevClassifier(TypeSafeClient client) : IColorClassifier
 {
     private const string Model = "jev-1.14.0"; // pin a version; images also work on jev-1.13.0
 
-    public async Task<CrayonResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken)
+    public async Task<ColorResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken)
     {
         var swatch = ImageAsset.FromBytes(png, "png");
 
@@ -31,7 +31,7 @@ public class JevClassifier(TypeSafeClient client) : ICrayonClassifier
         });
 
         var questions = new QuestionSet();
-        var crayon = questions.AddChoice("closest_crayon", new ChoiceQuestion(
+        var closestColor = questions.AddChoice("closest_crayon", new ChoiceQuestion(
             new Dictionary<string, JsonContent?>
             {
                 ["red"] = "Red",
@@ -48,9 +48,9 @@ public class JevClassifier(TypeSafeClient client) : ICrayonClassifier
         {
             // 400 = bad image / missing opt-in / context overflow, 413 = size limit.
             var result = await client.SystemOneAsync(state, questions, Model, options, cancellationToken);
-            var answer = result.Get(crayon);
+            var answer = result.Get(closestColor);
 
-            return new CrayonResult(
+            return new ColorResult(
                 answer.Choice,
                 answer.Confidence,
                 answer.Probabilities
