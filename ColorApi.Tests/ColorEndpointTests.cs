@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
-public class FakeClassifier : ICrayonClassifier
+public class FakeClassifier : IColorClassifier
 {
     public byte[]? Received { get; private set; }
     public Exception? ThrowOnCall { get; set; }
 
-    public CrayonResult Result { get; set; } = new("red", 0.9,
+    public ColorResult Result { get; set; } = new("red", 0.9,
     [
         new("blue", 0.02),
         new("red", 0.9),
@@ -26,34 +26,34 @@ public class FakeClassifier : ICrayonClassifier
         ThrowOnCall = null;
     }
 
-    public Task<CrayonResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken)
+    public Task<ColorResult> ClassifyAsync(byte[] png, CancellationToken cancellationToken)
     {
         Received = png;
         return ThrowOnCall is null ? Task.FromResult(Result) : throw ThrowOnCall;
     }
 }
 
-public class CrayonApiFactory : WebApplicationFactory<Program>
+public class ColorApiFactory : WebApplicationFactory<Program>
 {
     public FakeClassifier Classifier { get; } = new();
 
     // .env values don't overwrite existing variables, so a real key in .env is never used.
-    public CrayonApiFactory() =>
+    public ColorApiFactory() =>
         Environment.SetEnvironmentVariable("TYPESAFE_API_KEY", "test-key");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureTestServices(s => s.AddSingleton<ICrayonClassifier>(Classifier));
+        builder.ConfigureTestServices(s => s.AddSingleton<IColorClassifier>(Classifier));
     }
 }
 
-public class CrayonEndpointTests : IClassFixture<CrayonApiFactory>
+public class ColorEndpointTests : IClassFixture<ColorApiFactory>
 {
     private readonly FakeClassifier _classifier;
     private readonly HttpClient _client;
 
-    public CrayonEndpointTests(CrayonApiFactory factory)
+    public ColorEndpointTests(ColorApiFactory factory)
     {
         _classifier = factory.Classifier;
         _classifier.Reset();
@@ -65,7 +65,7 @@ public class CrayonEndpointTests : IClassFixture<CrayonApiFactory>
         var file = new ByteArrayContent(bytes);
         file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         var form = new MultipartFormDataContent { { file, fieldName, "upload.bin" } };
-        return _client.PostAsync("/crayon", form);
+        return _client.PostAsync("/color", form);
     }
 
     [Fact]

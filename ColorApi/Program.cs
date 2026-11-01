@@ -1,5 +1,5 @@
-// CrayonCli — an API that asks Jev which of the 8 classic crayon colors an image is closest to.
-// Usage:   dotnet run, then: curl -F "image=@path/to/image.jpg" <server-url>/crayon
+// ColorApi — an API that asks Jev which of the 8 classic crayon colors an image is closest to.
+// Usage:   dotnet run, then: curl -F "image=@path/to/image.jpg" <server-url>/color
 // Env:     TYPESAFE_API_KEY (from the environment or a .env file)
 
 using DotNetEnv;
@@ -15,11 +15,14 @@ if (string.IsNullOrWhiteSpace(apiKey))
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 20 * 1024 * 1024);
 builder.Services.AddSingleton(_ => new TypeSafeClient(apiKey));
-builder.Services.AddSingleton<ICrayonClassifier, JevClassifier>();
+if (builder.Environment.IsEnvironment("E2E"))
+    builder.Services.AddSingleton<IColorClassifier, StubClassifier>(); // for the Playwright tests
+else
+    builder.Services.AddSingleton<IColorClassifier, JevClassifier>();
 
 var app = builder.Build();
 
-app.MapPost("/crayon", async (IFormFile image, ICrayonClassifier classifier, ILogger<Program> log, CancellationToken cancellationToken) =>
+app.MapPost("/color", async (IFormFile image, IColorClassifier classifier, ILogger<Program> log, CancellationToken cancellationToken) =>
 {
     try
     {

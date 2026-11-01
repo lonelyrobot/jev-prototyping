@@ -1,34 +1,54 @@
-# CrayonCli
+# ColorApi
 
 A prototype API that sends an image to TypeSafe's Jev model and asks which of the
 8 classic crayon colors (red, orange, yellow, green, blue, violet, brown, black)
 it's closest to. Returns the pick plus the probability for each color as JSON.
+`web/` is a small React UI where you can drop in an image and see the results.
 
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - A TypeSafe API key
 - `curl` and `jq`, for `test-images.sh`
+- [Node.js](https://nodejs.org/), for the web UI
 
 ## Setup
 
 `dotnet run` restores the NuGet packages automatically.
 
 ```bash
-cd CrayonCli
+cd ColorApi
 echo 'TYPESAFE_API_KEY=...' > .env       # or export it; a real environment variable wins
 dotnet run
 ```
 
-Then, from `CrayonCli/` in another terminal, use the port shown in the `dotnet run` output:
+Then, from `ColorApi/` in another terminal, use the port shown in the `dotnet run` output:
 
 ```bash
-curl -F "image=@test-files/red.jpg" http://localhost:5000/crayon
+curl -F "image=@test-files/red.jpg" http://localhost:5000/color
+```
+
+## Web UI
+
+With the API running, from the repo root in another terminal:
+
+```bash
+npm --prefix web install
+npm --prefix web run dev
+```
+
+Open the URL it prints. Each image you drop makes one TypeSafe API call. Vite proxies `/color` to
+`http://localhost:5000`. That port can also be in use by macOS's AirPlay Receiver, so if the UI
+can't reach the API, use another one:
+
+```bash
+dotnet run --project ColorApi --urls http://localhost:5098
+COLOR_API_URL=http://localhost:5098 npm --prefix web run dev
 ```
 
 ## API
 
-`POST /crayon` takes `multipart/form-data` with the file in a field named `image`.
+`POST /color` takes `multipart/form-data` with the file in a field named `image`.
 
 Example response, with illustrative numbers:
 
@@ -53,16 +73,30 @@ Example response, with illustrative numbers:
 ## Testing
 
 ```bash
-dotnet test CrayonCli.Tests
+dotnet test ColorApi.Tests
 ```
 
 Runs the unit tests, which need no API key and make no API calls.
 
 ```bash
-CrayonCli/test-images.sh
+npm --prefix web test
 ```
 
-Starts the API, uploads every image in `CrayonCli/test-files/` and checks that Jev picks the color
+Runs the UI's component tests, with `fetch` mocked.
+
+```bash
+(cd web && npx playwright install chromium)   # first run only
+npm --prefix web run test:e2e
+```
+
+Runs the real UI against the real API with only the Jev call stubbed, so it needs no API key and
+spends no credits.
+
+```bash
+ColorApi/test-images.sh
+```
+
+Starts the API, uploads every image in `ColorApi/test-files/` and checks that Jev picks the color
 in the filename. This makes one TypeSafe API call per image, currently 8 in total.
 
 Exit codes: 0 all passed, 1 at least one wrong pick or error, 2 build or server startup failed.
@@ -81,4 +115,4 @@ Exit codes: 0 all passed, 1 at least one wrong pick or error, 2 build or server 
 ## License
 
 The code is available under the [MIT License](LICENSE). This doesn't cover the images in
-`CrayonCli/test-files/`, which keep their own licenses; see [ATTRIBUTION.md](CrayonCli/test-files/ATTRIBUTION.md).
+`ColorApi/test-files/`, which keep their own licenses; see [ATTRIBUTION.md](ColorApi/test-files/ATTRIBUTION.md).
