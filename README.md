@@ -1,13 +1,14 @@
 # CrayonCli
 
-A prototype CLI that sends an image to TypeSafe's Jev model and asks which of the
+A prototype API that sends an image to TypeSafe's Jev model and asks which of the
 8 classic crayon colors (red, orange, yellow, green, blue, violet, brown, black)
-it's closest to. Prints the pick plus the probability for each color.
+it's closest to. Returns the pick plus the probability for each color as JSON.
 
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - A TypeSafe API key
+- `curl` and `jq`, for `test-images.sh`
 
 ## Setup
 
@@ -16,32 +17,66 @@ it's closest to. Prints the pick plus the probability for each color.
 ```bash
 cd CrayonCli
 echo 'TYPESAFE_API_KEY=...' > .env       # or export it; a real environment variable wins
-dotnet run -- test-files/red.jpg
+dotnet run
 ```
 
+Then, from `CrayonCli/` in another terminal, use the port shown in the `dotnet run` output:
+
+```bash
+curl -F "image=@test-files/red.jpg" http://localhost:5000/crayon
+```
+
+## API
+
+`POST /crayon` takes `multipart/form-data` with the file in a field named `image`.
+
+Example response, with illustrative numbers:
+
+```json
+{
+  "closest": "red",
+  "confidence": 0.94,
+  "probabilities": [
+    { "color": "red", "probability": 0.94 },
+    { "color": "orange", "probability": 0.03 }
+  ]
+}
+```
+
+| Status | Meaning |
+|---|---|
+| 200 | Color picked |
+| 400 | Invalid or unsupported image, too many pixels, or missing `image` field |
+| 413 | Upload over 20 MiB |
+| 502 | TypeSafe API error (details are only logged) |
+
 ## Testing
+
+```bash
+dotnet test CrayonCli.Tests
+```
+
+Runs the unit tests, which need no API key and make no API calls.
 
 ```bash
 CrayonCli/test-images.sh
 ```
 
-Runs every image in `CrayonCli/test-files/` through the CLI and checks that Jev picks the color
+Starts the API, uploads every image in `CrayonCli/test-files/` and checks that Jev picks the color
 in the filename. This makes one TypeSafe API call per image, currently 8 in total.
 
-Exit codes: 0 all passed, 1 at least one wrong pick or error, 2 build failed.
+Exit codes: 0 all passed, 1 at least one wrong pick or error, 2 build or server startup failed.
 
 ## Notes
 
+- Accepts PNG, JPEG, WebP, GIF and BMP, up to 50 million pixels.
 - Image is auto-oriented (Jev ignores EXIF), scaled into 280–1,568 px per side, re-encoded as PNG.
 - Image input is experimental on TypeSafe's side ("danger zone"); the SDK sends the opt-in header.
-- Three lines in `CrayonCli/Program.cs` are marked `VERIFY` (`AddChoice`, `answer.Choice`, `answer.Probabilities`).
-  They compile against the SDK version in `CrayonCli/CrayonCli.csproj`, but their results still need checking in a live run.
-- Exit codes: 0 ok, 1 local error, 2 TypeSafe API error (400 bad image, 413 too large).
+- The API has no authentication or rate limiting, and every request spends TypeSafe credits. Add both before exposing it publicly.
 
 ## Ideas
 
 - `--local` mode: nearest crayon color in Lab space as a free baseline to compare against Jev.
-- Wrap the core in an ASP.NET minimal API endpoint.
 
 ## License
 
