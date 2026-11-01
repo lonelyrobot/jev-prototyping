@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CrayonCli\CrayonCli.csproj" />
+    <ProjectReference Include="..\ColorApi\ColorApi.csproj" />
   </ItemGroup>
 
 </Project>

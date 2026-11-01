@@ -12,7 +12,7 @@ if ! build_output=$(dotnet build --nologo -v quiet 2>&1); then
     exit 2
 fi
 
-port=${CRAYON_TEST_PORT:-5099}
+port=${COLOR_TEST_PORT:-5099}
 url="http://127.0.0.1:$port"
 server_log=$(mktemp)
 
@@ -32,7 +32,7 @@ for _ in $(seq 1 60); do
     if ! kill -0 "$server_pid" 2>/dev/null; then
         break
     fi
-    if curl -s -o /dev/null "$url/crayon"; then
+    if curl -s -o /dev/null "$url/color"; then
         ready=true
         break
     fi
@@ -53,7 +53,7 @@ for image in test-files/*.jpg; do
     expected=$(basename "$image" .jpg)
 
     body=$(mktemp)
-    status=$(curl -s -o "$body" -w '%{http_code}' -F "image=@$image" "$url/crayon")
+    status=$(curl -s -o "$body" -w '%{http_code}' -F "image=@$image" "$url/color")
 
     if [ "$status" = 200 ]; then
         actual=$(jq -r .closest "$body")
