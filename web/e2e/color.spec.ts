@@ -4,13 +4,13 @@ import { expect, test, type Page } from '@playwright/test'
 // page and dispatches the drag events on the zone with it.
 async function dropGeneratedImage(page: Page, width: number, height: number) {
   const dataTransfer = await page.evaluateHandle(
-    async ({ width, height }) => {
+    async (size) => {
       const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
+      canvas.width = size.width
+      canvas.height = size.height
       const context = canvas.getContext('2d')!
       context.fillStyle = '#1cac78'
-      context.fillRect(0, 0, width, height)
+      context.fillRect(0, 0, size.width, size.height)
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
 
       const transfer = new DataTransfer()
@@ -39,7 +39,7 @@ test('a valid image shows the stub result from the API', async ({ page }) => {
   await expect(results.getByRole('listitem')).toHaveCount(8)
   // StubClassifier returns these unsorted, so this also checks the API's sorting.
   await expect(results.getByRole('listitem').first()).toContainText('Green')
-  await expect(page.getByRole('img', { name: 'Your image' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Your upload' })).toBeVisible()
 })
 
 test('an image the API rejects shows its aspect-ratio message', async ({ page }) => {

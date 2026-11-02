@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "jsx-a11y", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/only-export-components": "error",
+    "react/react-in-jsx-scope": "off",
+    // The drop zone is a <label> wrapping a file input, which is the keyboard and click path.
+    // Its only handlers are for drag events, which have no keyboard equivalent.
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    // role="status" on a <p> is valid ARIA. <output> is inline, so it would change the layout.
+    "jsx-a11y/prefer-tag-over-role": "off"
+  }
+}

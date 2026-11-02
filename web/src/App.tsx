@@ -71,7 +71,7 @@ export default function App() {
 
       {(previewUrl || state.status === 'success') && (
         <div className="output">
-          {previewUrl && <img className="preview" src={previewUrl} alt="Your image" />}
+          {previewUrl && <img className="preview" src={previewUrl} alt="Your upload" />}
           {state.status === 'loading' && (
             <p className="loading" role="status">
               Checking the color…

@@ -85,6 +85,12 @@ npm --prefix web test
 Runs the UI's component tests, with `fetch` mocked.
 
 ```bash
+npm --prefix web run lint
+```
+
+Lints the UI's code with oxlint.
+
+```bash
 (cd web && npx playwright install chromium)   # first run only
 npm --prefix web run test:e2e
 ```

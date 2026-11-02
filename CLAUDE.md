@@ -23,9 +23,12 @@ npm --prefix web run dev          # start the UI; each image dropped makes one A
 npm --prefix web test             # component tests; no API key or API calls
 npm --prefix web run test:e2e     # real UI and API with a stub classifier; no API key or credits
 npm --prefix web run build        # type-check and build
+npm --prefix web run lint         # lint the UI; lint:fix applies automatic fixes
 ```
 
-To run a single unit test, use `dotnet test ColorApi.Tests --filter <TestName>`. There is no lint configuration.
+To run a single unit test, use `dotnet test ColorApi.Tests --filter <TestName>`.
+
+`web/` is linted with oxlint (`web/.oxlintrc.json`), and warnings fail the run. The .NET code has no linter. `web/` doesn't use ESLint with `typescript-eslint` because that package requires `typescript <6.1.0` and this project is on TypeScript 7, so check its peer range before switching.
 
 `dotnet run` only finds `.env` if it's in the current directory or a parent, so run from `ColorApi/` if that's where it is.
 

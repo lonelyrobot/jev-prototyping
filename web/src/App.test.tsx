@@ -54,7 +54,7 @@ describe('uploading', () => {
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('/color')
     expect(init?.method).toBe('POST')
-    expect((init?.body as FormData).get('image')).toEqual(file)
+    expect((init!.body as FormData).get('image')).toEqual(file)
   })
 
   it('works through the file input as well', async () => {
@@ -75,7 +75,7 @@ describe('uploading', () => {
 
     await screen.findByRole('heading', { name: 'Red' })
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect((fetchMock.mock.calls[0][1]?.body as FormData).get('image')).toEqual(first)
+    expect((fetchMock.mock.calls[0][1]!.body as FormData).get('image')).toEqual(first)
     expect(screen.getByText('Only the first of 2 files was used.')).toBeTruthy()
   })
 
